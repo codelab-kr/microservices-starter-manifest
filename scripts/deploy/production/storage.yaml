@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage
+  template:
+    metadata:
+      labels:
+        app: storage
+    spec:
+      imagePullSecrets:
+        - name: ocir-registry-secret-seoul
+      containers:
+        - name: storage
+          image: ap-seoul-1.ocir.io/cnqphqevfxnp/production-storage:0.2
+          env:
+            - name: 'SERVICE_NAME'
+              value: 'storage'
+          command: ['/bin/sh', '-c']
+          args: ['yarn start:production storage']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage
+spec:
+  selector:
+    app: storage
+  type: ClusterIP # Network Load Balancer(L4) 적용 시 NodePort 사용, ingress-nginx(L4, L7) 적용 시 ClusterIP 가능
+  ports:
+    - protocol: TCP
+      port: 4001
+      targetPort: 4001

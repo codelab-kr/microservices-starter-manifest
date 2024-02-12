@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      imagePullSecrets:
+        - name: ocir-registry-secret-seoul
+      containers:
+        - name: payments
+          image: ap-seoul-1.ocir.io/cnqphqevfxnp/production-payments:0.1
+          env:
+            - name: 'SERVICE_NAME'
+              value: 'payments'
+          envFrom:
+            - configMapRef:
+                name: mysql-env
+          command: ['/bin/sh', '-c']
+          args: ['yarn start:production payments']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+spec:
+  selector:
+    app: payments
+  type: ClusterIP # Network Load Balancer(L4) 적용 시 NodePort 사용, ingress-nginx(L4, L7) 적용 시 ClusterIP 가능
+  ports:
+    - protocol: TCP
+      port: 80

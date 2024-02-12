@@ -1,63 +1,78 @@
-# 미확인 (참고용)
-apiVersion: apps/v1
-kind: StatefulSet
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: mongo
+  name: mongo-env
+data:
+  MONGODB_USERNAME: 'root'
+  MONGODB_PASSWORD: 'password123'
+  MONGODB_DATABASE: 'production'
+  MONGODB_URI: 'mongodb://mongodb:27017'
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-pv
+  labels:
+    type: local
 spec:
-  serviceName: "mongo"
-  replicas: 3
+  storageClassName: standard
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: '/mnt/data'
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pv-claim
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+spec:
+  replicas: 1
   selector:
     matchLabels:
-      role: mongo
+      app: mongodb
   template:
     metadata:
       labels:
-        role: mongo
+        app: mongodb
     spec:
-      terminationGracePeriodSeconds: 10
       containers:
-        - name: mongo
-          image: mongo:4.2
-          command:
-            - mongod
-            - "--replSet"
-            - rs0
-            - "--bind_ip_all"
-          ports:
-            - containerPort: 27017
+        - name: mongodb
+          image: mongo
+          envFrom:
+            - configMapRef:
+                name: mongo-env
           volumeMounts:
-            - name: mongo-persistent-storage
+            - name: mongodb-storage
               mountPath: /data/db
-  volumeClaimTemplates:
-  - metadata:
-      name: mongo-persistent-storage
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
+      volumes:
+        - name: mongodb-storage
+          persistentVolumeClaim:
+            claimName: mongodb-pv-claim
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo
-  labels:
-    role: mongo
+  name: mongodb
 spec:
-  clusterIP: None
+  type: NodePort
   ports:
-    - port: 27017
+    - protocol: TCP
+      port: 27017
       targetPort: 27017
+      nodePort: 30000
   selector:
-    role: mongo
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mongo-init-replica
-data:
-  init-replica.sh: |
-    #!/bin/bash
-    echo "Initializing replica set"
-    mongo --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongo-0.mongo:27017"}, {_id: 1, host: "mongo-1.mongo:27017"}, {_id: 2, host: "mongo-2.mongo:27017"}]})'
-    echo "Replica set initialized"
+    app: mongodb
