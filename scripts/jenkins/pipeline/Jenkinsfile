@@ -48,9 +48,9 @@ node {
 
         script {
             def array = env.SERVICES.split(' ')
-            echo "Array: ${array}"
-            env.STAGE = "development"
+            env.STAGE = "${STAGE}"
             env.TAG = "0.${BUILD_NUMBER}"
+            echo "Array: ${array}"
             echo "STAGE: ${STAGE}"
             echo "TAG: ${TAG}"
 
