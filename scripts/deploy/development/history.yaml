@@ -24,7 +24,7 @@ spec:
             - name: 'SERVICE_NAME'
               value: 'history'
           command: ['/bin/sh', '-c']
-          args: ['yarn start:developmnet history']
+          args: ['yarn start:development history']
 ---
 apiVersion: v1
 kind: Service

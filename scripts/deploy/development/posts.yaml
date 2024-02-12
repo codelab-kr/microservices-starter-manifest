@@ -24,7 +24,7 @@ spec:
             - name: 'SERVICE_NAME'
               value: 'posts'
           command: ['/bin/sh', '-c']
-          args: ['yarn start:developmnet posts']
+          args: ['yarn start:development posts']
 ---
 apiVersion: v1
 kind: Service
