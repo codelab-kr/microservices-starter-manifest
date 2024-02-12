@@ -1,0 +1,40 @@
+pipeline {
+    agent {
+        kubernetes {
+            inheritFrom 'default'
+        } 
+    }
+
+    stages {
+        stage('Clone repository') {
+            steps {
+                checkout scm
+                echo env.STAGE
+                echo env.SERVICE
+                echo env.TAG
+            }
+        }
+
+        stage('Build image') {
+            steps {
+                container('dind') {
+                        sh 'docker --version'
+                        sh 'docker build --build-arg SERVICE=${SERVICE} -t ap-seoul-1.ocir.io/cnqphqevfxnp/${STAGE}-${SERVICE}:${TAG} -f apps/${SERVICE}/Dockerfile --target ${STAGE} .'
+
+                    }
+            }
+        }
+
+        stage('Deliver') {
+            steps {
+                container('dind') {
+                    withCredentials([usernamePassword(credentialsId: 'ocir-seoul', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin https://ap-seoul-1.ocir.io'
+                        sh 'docker push ap-seoul-1.ocir.io/cnqphqevfxnp/${STAGE}-${SERVICE}:${TAG}' 
+                    } 
+                }
+            }
+            
+        }
+    }
+}

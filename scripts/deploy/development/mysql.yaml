@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-env
+data:
+  MYSQL_ROOT_PASSWORD: 'testtest'
+  MYSQL_DATABASE: 'development'
+  MYSQL_USER: 'test'
+  MYSQL_PASSWORD: 'testtest'
+  MYSQL_TCP_PORT: '3306'
+  TZ: 'Asia/Seoul'
+  DB_HOST: 'mysql'
+  DB_TYPE: 'mysql'
+  DB_NAME: 'development'
+  DB_USERNAME: 'test'
+  DB_PASSWORD: 'testtest'
+  DB_ROOT_PASSWORD: 'testtest'
+  DB_PORT: '3306'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+data:
+  mysql.cnf: |
+    [mysqld]
+    character-set-server = utf8mb4
+    collation-server = utf8mb4_general_ci
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init
+data:
+  init.sql: |
+    GRANT ALL ON *.* TO root@'%';
+    CREATE DATABASE IF NOT EXISTS test;
+    CREATE USER 'test'@'localhost' IDENTIFIED WITH mysql_native_password BY 'testtest';
+    GRANT ALL ON test.* to test@'localhost';
+    GRANT ALL ON test.* to test@'%';
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+  labels:
+    type: local
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: '/mnt/data'
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8
+          envFrom:
+            - configMapRef:
+                name: mysql-env
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+            - name: mysql-config
+              mountPath: /etc/mysql/conf.d
+            - name: mysql-init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
+        - name: mysql-config
+          configMap:
+            name: mysql-config
+        - name: mysql-init
+          configMap:
+            name: mysql-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  selector:
+    app: mysql

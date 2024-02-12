@@ -1,0 +1,48 @@
+# 미확인 (참고용)
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats
+spec:
+  clusterIP: None
+  ports:
+    - port: 4222
+      name: client
+    - port: 6222
+      name: route
+    - port: 8222
+      name: monitor
+  selector:
+    app: nats
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nats
+spec:
+  serviceName: 'nats'
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nats
+  template:
+    metadata:
+      labels:
+        app: nats
+    spec:
+      containers:
+        - name: nats
+          image: nats:latest
+          ports:
+            - containerPort: 4222
+              name: client
+            - containerPort: 6222
+              name: route
+            - containerPort: 8222
+              name: monitor
+          args:
+            - '-DV'
+            - '-cluster'
+            - 'nats://0.0.0.0:6222'
+            - '-routes'
+            - 'nats://nats-0.nats:6222,nats://nats-1.nats:6222,nats://nats-2.nats:6222'

@@ -1,0 +1,33 @@
+# cd ~/.docker && vi Dockerfile.agent
+
+FROM jenkins/agent:latest-jdk17
+USER root
+
+COPY ./ca.pem /ca.pem
+COPY ./cert.pem /cert.pem
+COPY ./key.pem /key.pem
+
+ENV DOCKER_TLS_VERIFY=1
+ENV DOCKER_CERT_PATH=/
+ENV DOCER_HOST=<도커호스트 퍼블릭IP>:2376
+
+RUN chown jenkins:jenkins /ca.pem /cert.pem /key.pem && \
+   chmod 644 /ca.pem /cert.pem /key.pem
+
+RUN apt-get update && apt-get install -y lsb-release && \
+   curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc \
+   https://download.docker.com/linux/debian/gpg && \
+   echo "deb [arch=$(dpkg --print-architecture) \
+   signed-by=/usr/share/keyrings/docker-archive-keyring.asc] \
+   https://download.docker.com/linux/debian \
+   $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+   apt-get update && apt-get install -y docker.io && \
+   apt-get clean && rm -rf /var/lib/apt/lists/* && \
+   usermod -aG docker jenkins
+
+USER jenkins
+
+
+# docker build -f Dockerfile.agent -t codelabmaster/jenkins-agent-docker . 
+
+# docker push codelabmaster/jenkins-agent-docker

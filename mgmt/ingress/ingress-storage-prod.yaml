@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: storage-prod
+  namespace: tuplus
+  annotations:
+    acme.cert-manager.io/http01-ingress-class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 999m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - storage.code-lab.kr
+      secretName: storage-prod-tls
+  rules:
+    - host: storage.code-lab.kr
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: storage
+                port:
+                  number: 4001

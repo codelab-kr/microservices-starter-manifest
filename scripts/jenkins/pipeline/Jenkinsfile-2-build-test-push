@@ -1,0 +1,44 @@
+pipeline {
+    agent {
+        label 'docker'
+    }
+
+    stages {
+        stage('Check environment variables') {
+            steps {
+                echo env.STAGE
+                echo env.SERVICE
+                echo env.TAG
+            }
+        }
+
+        stage('Clone repository') {
+            steps {
+                git url: 'https://github.com/codelab-kr/microservices-starter.git', branch: 'feature', credentialsId: 'github'
+            }
+        }
+
+        stage('Build image') {
+            steps {
+                sh 'docker build -t ap-seoul-1.ocir.io/cnqphqevfxnp/${STAGE}-${SERVICE}:${TAG} -f apps/${SERVICE}/Dockerfile --target ${STAGE} .'
+            }
+        }
+
+        stage('Test image') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'docker run --rm ap-seoul-1.ocir.io/cnqphqevfxnp/${STAGE}-${SERVICE}:${TAG} yarn test ${SERVICE} 2>&1'
+                }
+            }
+        }
+
+        stage('Deliver') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'ocir-seoul', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin https://ap-seoul-1.ocir.io'
+                    sh 'docker push ap-seoul-1.ocir.io/cnqphqevfxnp/${STAGE}-${SERVICE}:${TAG}' 
+                }
+            }
+        }
+    }
+}
