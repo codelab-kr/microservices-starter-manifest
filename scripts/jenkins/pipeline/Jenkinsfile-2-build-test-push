@@ -26,9 +26,9 @@ pipeline {
 
         stage('Test image') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                // catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh 'docker run --rm ap-seoul-1.ocir.io/cnqphqevfxnp/${STAGE}-${SERVICE}:${TAG} yarn test ${SERVICE}'
-                }
+                // }
             }
         }
 
