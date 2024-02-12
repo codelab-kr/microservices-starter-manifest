@@ -12,7 +12,6 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: '/mnt/data'
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

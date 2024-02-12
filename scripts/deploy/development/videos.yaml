@@ -24,7 +24,7 @@ spec:
             - name: 'SERVICE_NAME'
               value: 'videos'
           command: ['/bin/sh', '-c']
-          args: ['yarn start:dev videos']
+          args: ['yarn start:developmnet videos']
 ---
 apiVersion: v1
 kind: Service

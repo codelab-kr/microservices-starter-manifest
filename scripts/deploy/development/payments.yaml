@@ -24,7 +24,7 @@ spec:
             - configMapRef:
                 name: mysql-env
           command: ['/bin/sh', '-c']
-          args: ['yarn start:dev payments']
+          args: ['yarn start:developmnet payments']
 ---
 apiVersion: v1
 kind: Service

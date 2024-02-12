@@ -51,7 +51,7 @@ spec:
                   name: tuplus-secret
                   key: GOOGLE_CLIENT_SECRET
           command: ['/bin/sh', '-c']
-          args: ['yarn start:dev api']
+          args: ['yarn start:developmnet api']
 ---
 apiVersion: v1
 kind: Service
