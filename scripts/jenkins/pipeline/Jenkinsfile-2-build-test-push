@@ -1,6 +1,12 @@
 pipeline {
-    agent {
-        label 'docker-agent'
+    // agent {
+    //     label 'docker-agent'
+    // }
+    agent { 
+        docker {
+            image 'docker:latest'
+            args '--entrypoint="" --user root -v /var/run/docker.sock:/var/run/docker.sock'
+        }
     }
 
     stages {
