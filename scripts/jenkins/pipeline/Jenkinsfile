@@ -1,4 +1,4 @@
-node {
+node('docker-agent') {
     stage('Clone repository') {
         checkout scm
         def output
@@ -48,7 +48,7 @@ node {
 
         script {
             def array = env.SERVICES.split(' ')
-            env.STAGE = "${STAGE}"
+            // env.STAGE = "${STAGE}"
             env.TAG = "0.${BUILD_NUMBER}"
             echo "Array: ${array}"
             echo "STAGE: ${STAGE}"

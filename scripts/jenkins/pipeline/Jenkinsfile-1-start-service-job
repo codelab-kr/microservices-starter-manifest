@@ -1,4 +1,4 @@
-node {
+node('docker-agent')  {
     stage('check parameters') { 
         echo "check parameters"
         echo "STAGE: ${STAGE}"
