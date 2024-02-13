@@ -1,20 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: tuplus-seoul
+  name: tuplus-prod
 spec:
   destination:
-    namespace: tuplus
+    name: ''
+    namespace: tuplus-prod
     server: 'https://kubernetes.default.svc'
   source:
-    path: scripts/deploy/development
+    path: scripts/deploy/production
     repoURL: 'https://github.com/codelab-kr/microservices-starter-manifest.git'
     targetRevision: HEAD
   sources: []
   project: default
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      prune: true
-      selfHeal: true

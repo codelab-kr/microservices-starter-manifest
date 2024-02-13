@@ -1,9 +1,11 @@
+# 미확인 (참고용)
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: nats
 spec:
-  replicas: 1
+  serviceName: 'nats'
+  replicas: 3
   selector:
     matchLabels:
       app: nats
@@ -22,19 +24,25 @@ spec:
               name: route
             - containerPort: 8222
               name: monitor
+          args:
+            - '-DV'
+            - '-cluster'
+            - 'nats://0.0.0.0:6222'
+            - '-routes'
+            - 'nats://nats-0.nats:6222,nats://nats-1.nats:6222,nats://nats-2.nats:6222'
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: nats
 spec:
-  type: NodePort
+  clusterIP: None
   ports:
-    - name: client
-      port: 4222
-    - name: route
-      port: 6222
-    - name: monitor
-      port: 8222
+    - port: 4222
+      name: client
+    - port: 6222
+      name: route
+    - port: 8222
+      name: monitor
   selector:
     app: nats
