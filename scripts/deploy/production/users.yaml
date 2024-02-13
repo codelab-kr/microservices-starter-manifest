@@ -16,7 +16,7 @@ spec:
         - name: ocir-registry-secret-seoul
       containers:
         - name: users
-          image: ap-seoul-1.ocir.io/cnqphqevfxnp/production-users:0.76
+          image: ap-seoul-1.ocir.io/cnqphqevfxnp/production-users:0.1
           envFrom:
             - configMapRef:
                 name: mysql-env
