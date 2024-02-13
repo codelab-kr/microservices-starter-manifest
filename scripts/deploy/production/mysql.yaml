@@ -52,7 +52,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: '/mnt/data-prod'
+    path: '/mnt/data/prod/mysql'
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
